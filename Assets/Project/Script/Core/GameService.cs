@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Gazeus.DesafioMatch3.Models;
+using Gazeus.DesafioMatch3.Particle;
 using UnityEngine;
 
 namespace Gazeus.DesafioMatch3.Core
@@ -224,21 +225,55 @@ namespace Gazeus.DesafioMatch3.Core
                 for (int x = 0; x < newBoard[y].Count; x++)
                 {
                     if (x > 1 &&
-                        newBoard[y][x].Type == newBoard[y][x - 1].Type &&
-                        newBoard[y][x - 1].Type == newBoard[y][x - 2].Type)
+                    newBoard[y][x].Type == newBoard[y][x - 1].Type &&
+                    newBoard[y][x - 1].Type == newBoard[y][x - 2].Type)
                     {
-                        matchedTiles[y][x] = true;
-                        matchedTiles[y][x - 1] = true;
-                        matchedTiles[y][x - 2] = true;
+                        if (x > 2 && newBoard[y][x - 2].Type == newBoard[y][x - 3].Type)
+                        {
+                            for (int i = y - 1; i <= y + 1; i++)
+                            {
+                                for (int j = x - 3; j <= x; j++)
+                                {
+                                    if (i >= 0 && i < newBoard.Count && j >= 0 && j < newBoard[y].Count)
+                                    {
+                                        matchedTiles[i][j] = true;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            matchedTiles[y][x] = true;
+                            matchedTiles[y][x - 1] = true;
+                            matchedTiles[y][x - 2] = true;
+                        }
                     }
 
                     if (y > 1 &&
-                        newBoard[y][x].Type == newBoard[y - 1][x].Type &&
-                        newBoard[y - 1][x].Type == newBoard[y - 2][x].Type)
+                    newBoard[y][x].Type == newBoard[y - 1][x].Type &&
+                    newBoard[y - 1][x].Type == newBoard[y - 2][x].Type)
                     {
-                        matchedTiles[y][x] = true;
-                        matchedTiles[y - 1][x] = true;
-                        matchedTiles[y - 2][x] = true;
+                        if (y > 2 && newBoard[y - 2][x].Type == newBoard[y - 3][x].Type)
+                        {
+                            for (int i = y - 3; i <= y; i++)
+                            {
+                                for (int j = x - 1; j <= x + 1; j++)
+                                {
+                                    if (i >= 0 && i < newBoard.Count && j >= 0 && j < newBoard[y].Count)
+                                    {
+                                        matchedTiles[i][j] = true;
+                                    }
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            matchedTiles[y][x] = true;
+                            matchedTiles[y - 1][x] = true;
+                            matchedTiles[y - 2][x] = true;
+
+                        }
                     }
                 }
             }

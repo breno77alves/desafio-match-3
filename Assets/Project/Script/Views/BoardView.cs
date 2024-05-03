@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using Gazeus.DesafioMatch3.Models;
+using Gazeus.DesafioMatch3.Particle;
 using Gazeus.DesafioMatch3.ScriptableObjects;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
 
 namespace Gazeus.DesafioMatch3.Views
 {
@@ -15,10 +18,20 @@ namespace Gazeus.DesafioMatch3.Views
         [SerializeField] private GridLayoutGroup _boardContainer;
         [SerializeField] private TilePrefabRepository _tilePrefabRepository;
         [SerializeField] private TileSpotView _tileSpotPrefab;
+        [SerializeField] private PointsManager _pointsManager;
+        [SerializeField] private TilesSFXManager _matchSFXManager;
+
 
         private GameObject[][] _tiles;
         private TileSpotView[][] _tileSpots;
+        private bool _spawnShinyEffect = false;
 
+        private BoardVFX _boardVFX;
+
+        void Awake()
+        {
+            _boardVFX = FindObjectOfType<BoardVFX>();
+        }
         public void CreateBoard(List<List<Tile>> board)
         {
             _boardContainer.constraintCount = board[0].Count;
@@ -77,14 +90,51 @@ namespace Gazeus.DesafioMatch3.Views
 
         public Tween DestroyTiles(List<Vector2Int> matchedPosition)
         {
+            if (matchedPosition.Count > 3)
+            {
+                _matchSFXManager.PlayLargeMatchSFX();
+                _spawnShinyEffect = true;
+            }
+            else
+            {
+                _matchSFXManager.PlaySmallMatchSFX();
+            }
+
+            Sequence sequence = DOTween.Sequence();
             for (int i = 0; i < matchedPosition.Count; i++)
             {
                 Vector2Int position = matchedPosition[i];
+
+                UnityEngine.UI.Image tileImage = _tiles[position.y][position.x].GetComponent<UnityEngine.UI.Image>();
+                Color tileColor = tileImage.color;
+
+                GameObject vfxInstance = _boardVFX.GetDestroyTileVFX();
+
+                if (vfxInstance != null)
+                {
+                    vfxInstance.transform.position = _tiles[position.y][position.x].transform.position;
+
+                    ParticleSystem.MainModule mainModule = vfxInstance.GetComponent<ParticleSystem>().main;
+                    mainModule.startColor = tileColor;
+
+                    if (_spawnShinyEffect)
+                    {
+                        GameObject vfxShinyInstance = _boardVFX.GetGlimmeringVFX();
+                        if (vfxShinyInstance != null)
+                        {
+                            vfxShinyInstance.transform.position = _tiles[position.y][position.x].transform.position;
+                        }
+                    }
+                }
                 Destroy(_tiles[position.y][position.x]);
                 _tiles[position.y][position.x] = null;
             }
 
-            return DOVirtual.DelayedCall(0.2f, () => { });
+            _pointsManager.AddPoints();
+
+            _spawnShinyEffect = false;
+
+            return DOVirtual.DelayedCall(0.4f, () => { }); //default 0.2f
         }
 
         public Tween MoveTiles(List<MovedTileInfo> movedTiles)

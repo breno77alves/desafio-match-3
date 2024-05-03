@@ -11,6 +11,7 @@ namespace Gazeus.DesafioMatch3.Views
 
         [SerializeField] private Button _button;
 
+
         private int _x;
         private int _y;
 
@@ -26,7 +27,9 @@ namespace Gazeus.DesafioMatch3.Views
             tile.transform.SetParent(transform);
             tile.transform.DOKill();
 
-            return tile.transform.DOMove(transform.position, 0.3f);
+            return DOTween.Sequence()
+                    .Append(tile.transform.DOMove(transform.position, 0.3f))
+                    .Join(tile.transform.DOScale(Vector3.one * 1.1f, 0.3f));
         }
 
         public void SetPosition(int x, int y)
